@@ -191,7 +191,36 @@ var GameBoard = function() {
 		for (var i = 0, len = this.objects.length; i < len; i++) {
 			var obj = this.objects[i];
 			obj[funcName].apply(obj, args);
+		  //obj.step.apply();
+		  //playship.step(0.03)
 		}
+	}
+	this.detect = function(func) {
+		for (var i = 0, val = null, len = this.objects.length; i < len; i++) {
+			if (func.call(this.objects[i])) {
+				return this.objects[i];
+			}
+		}
+		return false;
+	}
+	this.step = function(dt) {
+		this.resetRemoved();
+		this.iterate("step", dt);
+		this.finalizeRemoved();
+	}
+	this.draw = function(ctx) {
+		this.iterate("draw", ctx);
+	}
+	this.overlap = function(o1, o2) {
+		return !((o1.y + o1.h - 1 < o2.y) || (o1.y > o2.y + o2.h - 1) || (o1.x + o1.h - 1 < o2.x) || (o1.x > o2.x + o2.w - 1));
+	}
+	this.collide = function(){
+		return this.detect(function(){
+			if(obj!=this){
+				var col = (!type || this.type & type) && board.overlap(obj,this);
+				return col ? this : false;
+			}
+		});
 	}
 }
 
@@ -212,7 +241,11 @@ var startGame = function() {
 	Game.setBoard(3, new TitleScreen("星球大战", "一个相当刺激的游戏", playGame));
 }
 var playGame = function() {
-	Game.setBoard(3, new PlayerShip());
+	var board = new GameBoard();
+	board.add(new PlayerShip());
+	
+	Game.setBoard(3, board);
+	Game.setBoard(3,new PlayerShip());	
 }
 window.addEventListener("load", function() {
 	Game.initialize("game", sprites, startGame);
