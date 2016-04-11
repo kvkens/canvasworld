@@ -140,7 +140,7 @@ var PlayerShip = function() {
 				this.vx = -this.maxVel;
 			} else if (Game.keys["right"]) {
 				this.vx = this.maxVel;
-			}
+			} else { this.vx = 0; }
 
 			this.x += this.vx * dt;
 			console.log(this.x);
