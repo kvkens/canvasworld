@@ -21,28 +21,28 @@ var sprites = {
 		h: 10,
 		frames: 1
 	},
-	enemy_purple : {
+	enemy_purple: {
 		sx: 37,
 		sy: 0,
 		w: 42,
 		h: 42,
 		frames: 1
 	},
-	enemy_bee : {
+	enemy_bee: {
 		sx: 79,
 		sy: 0,
 		w: 42,
 		h: 43,
 		frames: 1
 	},
-	enemy_ship : {
+	enemy_ship: {
 		sx: 116,
 		sy: 0,
 		w: 42,
 		h: 43,
 		frames: 1
 	},
-	enemy_circle : {
+	enemy_circle: {
 		sx: 158,
 		sy: 0,
 		w: 32,
@@ -52,32 +52,41 @@ var sprites = {
 };
 
 var enemies = {
-	basic : {x:100,y:-50,sprite:"enemy_purple",B:100,C:2,E:100}
+	basic: {
+		x: 0,
+		y: -50,
+		sprite: "enemy_purple",
+		B: 100,
+		C: 2,
+		E: 100
+	}
 };
 
 /*
  * 准备游戏
  */
 var startGame = function() {
-	//SpriteSheet.draw(Game.ctx, "ship", 0, 0, 0);
-	Game.setBoard(0, new Starfield(20, 0.4, 100, true));
-	Game.setBoard(1, new Starfield(50, 0.6, 100));
-	Game.setBoard(2, new Starfield(100, 1.0, 50));
-	Game.setBoard(3, new TitleScreen("星球飞机大战", "按空格键开始游戏！", playGame));
-}
-/*
- * 玩游戏
- */
+		//SpriteSheet.draw(Game.ctx, "ship", 0, 0, 0);
+		Game.setBoard(0, new Starfield(20, 0.4, 100, true));
+		Game.setBoard(1, new Starfield(50, 0.6, 100));
+		Game.setBoard(2, new Starfield(100, 1.0, 50));
+		Game.setBoard(3, new TitleScreen("星球飞机大战", "按空格键开始游戏！", playGame));
+	}
+	/*
+	 * 玩游戏
+	 */
 var playGame = function() {
-	var board = new GameBoard();
-	board.add(new Enemy(enemies.basic));
-	board.add(new Enemy(enemies.basic,{x:200}));
-	board.add(new PlayerShip());
-	Game.setBoard(3, board);
-}
-/*
- * 监听事件
- */
+		var board = new GameBoard();
+		board.add(new Enemy(enemies.basic));
+		board.add(new Enemy(enemies.basic, {
+			x: 160
+		}));
+		board.add(new PlayerShip());
+		Game.setBoard(3, board);
+	}
+	/*
+	 * 监听事件
+	 */
 window.addEventListener("load", function() {
 	Game.initialize("game", sprites, startGame);
 });
@@ -214,14 +223,14 @@ var Enemy = function(blueprint, override) {
 }
 Enemy.prototype.step = function(dt) {
 	this.t += dt;
-	this.vx = this.A + this.B * Math.sin(this.C * this.t * this.D);
-	this.vy = this.E + this.F * Math.sin(this.G * this.t * this.H);
+	this.vx = this.A + this.B * Math.sin(this.C * this.t + this.D);
+	this.vy = this.E + this.F * Math.sin(this.G * this.t + this.H);
 	this.x += this.vx * dt;
 	this.y += this.vy * dt;
 	if (this.y > Game.height || this.x < -this.w || this.x > Game.width) {
 		this.board.remove(this);
 	}
 }
-Enemy.prototype.draw=function(ctx){
-	SpriteSheet.draw(ctx,this.sprite,this.x,this.y);
+Enemy.prototype.draw = function(ctx) {
+	SpriteSheet.draw(ctx, this.sprite, this.x, this.y);
 }
