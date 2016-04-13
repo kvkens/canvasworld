@@ -4,6 +4,14 @@
  */
 
 /*
+ * 敌机类型
+ */
+var OBJECT_PLAYER = 1,
+	OBJECT_PLAYER_PROJECTILE = 2,
+	OBJECT_ENEMY = 4,
+	OBJECT_ENEMY_PROJECTILE = 8,
+	OBJECT_POWERUP = 16;
+/*
  * 精灵表
  */
 var sprites = {
@@ -129,98 +137,91 @@ var Starfield = function(speed, opacity, numStars, clear) {
 	}
 	//飞船
 var PlayerShip = function() {
-		this.w = SpriteSheet.map["ship"].w;
-		this.h = SpriteSheet.map["ship"].h;
-		this.x = Game.width / 2 - this.w / 2;
-		this.y = Game.height - 10 - this.h;
-		this.vx = 0;
-		this.reloadTime = 0.25;
-		this.reload = this.reloadTime;
+	this.setup("ship", {
+		vx: 0,
+		reloadTime: 0.25,
+		maxVel: 200
+	});
+	this.x = Game.width / 2 - this.w / 2;
+	this.y = Game.height - 10 - this.h;
+
+	this.reload = this.reloadTime;
+	this.step = function(dt) {
 		this.step = function(dt) {
-			this.maxVel = 200;
-			this.step = function(dt) {
-				if (Game.keys["left"]) {
-					this.vx = -this.maxVel;
-				} else if (Game.keys["right"]) {
-					this.vx = this.maxVel;
-				} else {
-					this.vx = 0;
-				}
+			if (Game.keys["left"]) {
+				this.vx = -this.maxVel;
+			} else if (Game.keys["right"]) {
+				this.vx = this.maxVel;
+			} else {
+				this.vx = 0;
+			}
 
-				this.x += this.vx * dt;
-				if (this.x < 0) {
-					this.x = 0;
-				} else if (this.x > Game.width - this.w) {
-					this.x = Game.width - this.w;
-				}
+			this.x += this.vx * dt;
+			if (this.x < 0) {
+				this.x = 0;
+			} else if (this.x > Game.width - this.w) {
+				this.x = Game.width - this.w;
+			}
 
-				this.reload -= dt;
-				if (Game.keys['fire'] && this.reload < 0) {
-					Game.keys['fire'] = false;
-					this.reload = this.reloadTime;
+			this.reload -= dt;
+			if (Game.keys['fire'] && this.reload < 0) {
+				Game.keys['fire'] = false;
+				this.reload = this.reloadTime;
 
-					this.board.add(new PlayerMissile(this.x, this.y + this.h / 2));
-					this.board.add(new PlayerMissile(this.x + this.w, this.y + this.h / 2));
-				}
+				this.board.add(new PlayerMissile(this.x, this.y + this.h / 2));
+				this.board.add(new PlayerMissile(this.x + this.w, this.y + this.h / 2));
 			}
 		}
-		this.draw = function(ctx) {
-			SpriteSheet.draw(ctx, "ship", this.x, this.y, 0);
-		}
-
 	}
-	/*
-	 * 飞船导弹
-	 */
-var PlayerMissile = function(x, y) {
-	this.w = SpriteSheet.map['missile'].w;
-	this.h = SpriteSheet.map['missile'].h;
-	this.x = x - this.w / 2;
-	// Use the passed in y as the bottom of the missile
-	this.y = y - this.h;
-	this.vy = -700;
-};
 
+}
+PlayerShip.prototype = new Sprite();
+PlayerShip.prototype.type = OBJECT_PLAYER;
+/*
+ * 飞船导弹
+ */
+var PlayerMissile = function(x, y) {
+	this.setup("missile", {
+		vy: -700,
+		damage : 10
+	});
+	this.x = x - this.w / 2;
+	this.y = y - this.h;
+};
+PlayerMissile.prototype = new Sprite();
+PlayerMissile.prototype.type = OBJECT_PLAYER_PROJECTILE;
 PlayerMissile.prototype.step = function(dt) {
 	this.y += this.vy * dt;
-	if (this.y < -this.h) {
+	var collision = this.board.collide(this,OBJECT_ENEMY);
+	if(collision){
+		collision.hit(this.damage);
+		this.board.remove(this);
+	}else if(this.y<-this.h){
 		this.board.remove(this);
 	}
-};
-
-PlayerMissile.prototype.draw = function(ctx) {
-	SpriteSheet.draw(ctx, 'missile', this.x, this.y);
 };
 
 /*
  * 敌机飞船
  */
 var Enemy = function(blueprint, override) {
-	var baseParameters = {
-		A: 0,
-		B: 0,
-		C: 0,
-		D: 0,
-		E: 0,
-		F: 0,
-		G: 0,
-		H: 0
-	};
-	for (var prop in baseParameters) {
-		this[prop] = baseParameters[prop];
-	}
-	for (var prop in blueprint) {
-		this[prop] = blueprint[prop];
-	}
-	if (override) {
-		for (var prop in override) {
-			this[prop] = override[prop];
-		}
-	}
-	this.w = SpriteSheet.map[this.sprite].w;
-	this.h = SpriteSheet.map[this.sprite].h;
-	this.t = 0;
+	this.merge(this.baseParameters);
+	this.setup(blueprint.sprite, blueprint);
+	this.merge(override);
 }
+Enemy.prototype = new Sprite();
+Enemy.prototype.type = OBJECT_ENEMY;
+Enemy.prototype.baseParameters = {
+	A: 0,
+	B: 0,
+	C: 0,
+	D: 0,
+	E: 0,
+	F: 0,
+	G: 0,
+	H: 0,
+	t: 0
+};
 Enemy.prototype.step = function(dt) {
 	this.t += dt;
 	this.vx = this.A + this.B * Math.sin(this.C * this.t + this.D);
@@ -230,7 +231,4 @@ Enemy.prototype.step = function(dt) {
 	if (this.y > Game.height || this.x < -this.w || this.x > Game.width) {
 		this.board.remove(this);
 	}
-}
-Enemy.prototype.draw = function(ctx) {
-	SpriteSheet.draw(ctx, this.sprite, this.x, this.y);
 }
