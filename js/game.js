@@ -280,7 +280,7 @@ PlayerMissile.prototype.step = function(dt) {
 	} else if (this.y < -this.h) {
 		this.board.remove(this);
 	}
-	//this.board.add(new Explosion(this.x + this.w / 2, this.y + this.h / 2));
+	this.board.add(new Explosion(this.x + this.w / 2, this.y + this.h / 2));
 };
 
 /*
