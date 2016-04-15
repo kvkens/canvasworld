@@ -5,8 +5,6 @@
 
 
 /*
-<<<<<<< HEAD
-=======
  * 关卡等级
  */
 var level1 = [
@@ -29,7 +27,6 @@ var OBJECT_PLAYER = 1,
 	OBJECT_ENEMY_PROJECTILE = 8,
 	OBJECT_POWERUP = 16;
 /*
->>>>>>> refs/remotes/origin/master
  * 精灵表
  */
 var sprites = {
@@ -46,8 +43,6 @@ var sprites = {
 		w: 2,
 		h: 10,
 		frames: 1
-<<<<<<< HEAD
-=======
 	},
 	enemy_purple: {
 		sx: 37,
@@ -142,33 +137,18 @@ var enemies = {
 		B: 150,
 		C: 1.2,
 		E: 75
->>>>>>> refs/remotes/origin/master
 	}
 };
 
 /*
-<<<<<<< HEAD
- * 开始游戏
- */
-var startGame = function() {
-	//SpriteSheet.draw(Game.ctx, "ship", 0, 0, 0);
-=======
  * 准备游戏
  */
 var startGame = function() {
->>>>>>> refs/remotes/origin/master
 	Game.setBoard(0, new Starfield(20, 0.4, 100, true));
 	Game.setBoard(1, new Starfield(50, 0.6, 100));
 	Game.setBoard(2, new Starfield(100, 1.0, 50));
 	Game.setBoard(3, new TitleScreen("星球飞机大战", "按空格键开始游戏！", playGame));
 }
-<<<<<<< HEAD
-var playGame = function() {
-	var board = new GameBoard();
-	board.add(new PlayerShip());
-	Game.setBoard(3, board);
-}
-=======
 	/*
 	 * 玩游戏
 	 */
@@ -193,17 +173,13 @@ var loseGame = function(){
 /*
  * 监听事件
  */
->>>>>>> refs/remotes/origin/master
 window.addEventListener("load", function() {
 	Game.initialize("game", sprites, startGame);
 });
 
-<<<<<<< HEAD
-=======
 /*
  * 背景星星
  */
->>>>>>> refs/remotes/origin/master
 var Starfield = function(speed, opacity, numStars, clear) {
 		var stars = document.createElement("canvas");
 		stars.width = Game.width;
@@ -239,17 +215,6 @@ var Starfield = function(speed, opacity, numStars, clear) {
 	}
 	//飞船
 var PlayerShip = function() {
-<<<<<<< HEAD
-	this.w = SpriteSheet.map["ship"].w;
-	this.h = SpriteSheet.map["ship"].h;
-	this.x = Game.width / 2 - this.w / 2;
-	this.y = Game.height - 10 - this.h;
-	this.vx = 0;
-	this.reloadTime = 0.25;
-	this.reload = this.reloadTime;
-	this.step = function(dt) {
-		this.maxVel = 200;
-=======
 	this.setup("ship", {
 		vx: 0,
 		reloadTime: 0.25,
@@ -260,7 +225,6 @@ var PlayerShip = function() {
 
 	this.reload = this.reloadTime;
 	this.step = function(dt) {
->>>>>>> refs/remotes/origin/master
 		this.step = function(dt) {
 			if (Game.keys["left"]) {
 				this.vx = -this.maxVel;
@@ -281,41 +245,11 @@ var PlayerShip = function() {
 			if (Game.keys['fire'] && this.reload < 0) {
 				Game.keys['fire'] = false;
 				this.reload = this.reloadTime;
-<<<<<<< HEAD
-
-=======
->>>>>>> refs/remotes/origin/master
 				this.board.add(new PlayerMissile(this.x, this.y + this.h / 2));
 				this.board.add(new PlayerMissile(this.x + this.w, this.y + this.h / 2));
 			}
 		}
 	}
-<<<<<<< HEAD
-	this.draw = function(ctx) {
-		SpriteSheet.draw(ctx, "ship", this.x, this.y, 0);
-	}
-
-}
-var PlayerMissile = function(x, y) {
-	this.w = SpriteSheet.map['missile'].w;
-	this.h = SpriteSheet.map['missile'].h;
-	this.x = x - this.w / 2;
-	// Use the passed in y as the bottom of the missile
-	this.y = y - this.h;
-	this.vy = -700;
-};
-
-PlayerMissile.prototype.step = function(dt) {
-	this.y += this.vy * dt;
-	if (this.y < -this.h) {
-		this.board.remove(this);
-	}
-};
-
-PlayerMissile.prototype.draw = function(ctx) {
-	SpriteSheet.draw(ctx, 'missile', this.x, this.y);
-};
-=======
 
 }
 PlayerShip.prototype = new Sprite();
@@ -411,4 +345,3 @@ Explosion.prototype.step = function(dt) {
 				this.board.remove(this);
 			}
 		}
->>>>>>> refs/remotes/origin/master

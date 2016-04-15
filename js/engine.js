@@ -7,10 +7,7 @@
  * 游戏主程序
  */
 var Game = new function() {
-<<<<<<< HEAD
-=======
 	var boards = [];
->>>>>>> refs/remotes/origin/master
 	//初始化
 	this.initialize = function(canvasElementId, sprite_data, callback) {
 			this.canvas = document.getElementById(canvasElementId);
@@ -108,12 +105,6 @@ var TitleScreen = function TitleScreen(title, subtitle, callback) {
 /*
  * 游戏队列盘
  */
-<<<<<<< HEAD
-var GameBoard = function() {
-	var board = this;
-	this.objects = [];
-	this.cnt = [];
-=======
 
 var GameBoard = function() {
 	var board = this;
@@ -122,25 +113,11 @@ var GameBoard = function() {
 	this.objects = [];
 	this.cnt = {};
 	// Add a new object to the object list
->>>>>>> refs/remotes/origin/master
 	this.add = function(obj) {
 		obj.board = this;
 		this.objects.push(obj);
 		this.cnt[obj.type] = (this.cnt[obj.type] || 0) + 1;
 		return obj;
-<<<<<<< HEAD
-	}
-	this.remove = function(obj) {
-		var wasStillAlive = this.removed.indexOf(obj) != -1;
-		if (wasStillAlive) {
-			this.removed.push(obj);
-		}
-		return wasStillAlive;
-	}
-	this.resetRemoved = function() {
-		this.removed = [];
-	}
-=======
 	};
 
 	// Mark an object for removal
@@ -154,18 +131,10 @@ var GameBoard = function() {
 	}
 
 	// Removed an objects marked for removal from the list
->>>>>>> refs/remotes/origin/master
 	this.finalizeRemoved = function() {
 		for (var i = 0, len = this.removed.length; i < len; i++) {
 			var idx = this.objects.indexOf(this.removed[i]);
 			if (idx != -1) {
-<<<<<<< HEAD
-				this.cnt[this.removed[i].type]--;
-				this.objects.splice(idx, 1);
-			}
-		}
-	}
-=======
 				this.objects.splice(idx, 1);
 				this.cnt[this.removed[i].type]--;
 			}
@@ -173,46 +142,10 @@ var GameBoard = function() {
 	}
 
 	// Call the same method on all current objects 
->>>>>>> refs/remotes/origin/master
 	this.iterate = function(funcName) {
 		var args = Array.prototype.slice.call(arguments, 1);
 		for (var i = 0, len = this.objects.length; i < len; i++) {
 			var obj = this.objects[i];
-<<<<<<< HEAD
-			obj[funcName].apply(obj, args);
-			//obj.step.apply();
-			//playship.step(0.03)
-		}
-	}
-	this.detect = function(func) {
-		for (var i = 0, val = null, len = this.objects.length; i < len; i++) {
-			if (func.call(this.objects[i])) {
-				return this.objects[i];
-			}
-		}
-		return false;
-	}
-	this.step = function(dt) {
-		this.resetRemoved();
-		this.iterate("step", dt);
-		this.finalizeRemoved();
-	}
-	this.draw = function(ctx) {
-		this.iterate("draw", ctx);
-	}
-	this.overlap = function(o1, o2) {
-		return !((o1.y + o1.h - 1 < o2.y) || (o1.y > o2.y + o2.h - 1) || (o1.x + o1.h - 1 < o2.x) || (o1.x > o2.x + o2.w - 1));
-	}
-	this.collide = function() {
-		return this.detect(function() {
-			if (obj != this) {
-				var col = (!type || this.type & type) && board.overlap(obj, this);
-				return col ? this : false;
-			}
-		});
-	}
-}
-=======
 			obj[funcName].apply(obj, args)
 		}
 	};
@@ -338,4 +271,3 @@ Level.prototype.step = function(dt) {
 };
 
 Level.prototype.draw = function(ctx) {};
->>>>>>> refs/remotes/origin/master
