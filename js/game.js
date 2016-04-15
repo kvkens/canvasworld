@@ -3,6 +3,21 @@
  * Kvkens
  */
 
+
+/*
+ * 关卡等级
+ */
+var level1 = [
+ // Start,   End, Gap,  Type,   Override
+  [ 0,      4000,  500, 'step' ],
+  [ 6000,   13000, 800, 'ltr' ],
+  [ 10000,  16000, 400, 'circle' ],
+  [ 17800,  20000, 500, 'straight', { x: 50 } ],
+  [ 18200,  20000, 500, 'straight', { x: 90 } ],
+  [ 18200,  20000, 500, 'straight', { x: 10 } ],
+  [ 22000,  25000, 400, 'wiggle', { x: 150 }],
+  [ 22000,  25000, 400, 'wiggle', { x: 100 }]
+];
 /*
  * 敌机类型
  */
@@ -56,6 +71,13 @@ var sprites = {
 		w: 32,
 		h: 33,
 		frames: 1
+	},
+	explosion: {
+		sx: 0,
+		sy: 64,
+		w: 64,
+		h: 64,
+		frames: 12
 	}
 };
 
@@ -66,7 +88,55 @@ var enemies = {
 		sprite: "enemy_purple",
 		B: 100,
 		C: 2,
+		E: 100,
+		health: 20
+	},
+	straight: {
+		x: 0,
+		y: -50,
+		sprite: 'enemy_ship',
+		health: 10,
 		E: 100
+	},
+	ltr: {
+		x: 0,
+		y: -100,
+		sprite: 'enemy_purple',
+		health: 10,
+		B: 75,
+		C: 1,
+		E: 100
+	},
+	circle: {
+		x: 250,
+		y: -50,
+		sprite: 'enemy_circle',
+		health: 10,
+		A: 0,
+		B: -100,
+		C: 1,
+		E: 20,
+		F: 100,
+		G: 1,
+		H: Math.PI / 2
+	},
+	wiggle: {
+		x: 100,
+		y: -50,
+		sprite: 'enemy_bee',
+		health: 20,
+		B: 50,
+		C: 4,
+		E: 100
+	},
+	step: {
+		x: 0,
+		y: -50,
+		sprite: 'enemy_circle',
+		health: 10,
+		B: 150,
+		C: 1.2,
+		E: 75
 	}
 };
 
@@ -74,27 +144,35 @@ var enemies = {
  * 准备游戏
  */
 var startGame = function() {
-		//SpriteSheet.draw(Game.ctx, "ship", 0, 0, 0);
-		Game.setBoard(0, new Starfield(20, 0.4, 100, true));
-		Game.setBoard(1, new Starfield(50, 0.6, 100));
-		Game.setBoard(2, new Starfield(100, 1.0, 50));
-		Game.setBoard(3, new TitleScreen("星球飞机大战", "按空格键开始游戏！", playGame));
-	}
+	Game.setBoard(0, new Starfield(20, 0.4, 100, true));
+	Game.setBoard(1, new Starfield(50, 0.6, 100));
+	Game.setBoard(2, new Starfield(100, 1.0, 50));
+	Game.setBoard(3, new TitleScreen("星球飞机大战", "按空格键开始游戏！", playGame));
+}
 	/*
 	 * 玩游戏
 	 */
 var playGame = function() {
-		var board = new GameBoard();
-		board.add(new Enemy(enemies.basic));
-		board.add(new Enemy(enemies.basic, {
-			x: 160
-		}));
-		board.add(new PlayerShip());
-		Game.setBoard(3, board);
-	}
-	/*
-	 * 监听事件
-	 */
+	var board = new GameBoard();
+//	board.add(new Enemy(enemies.step));
+//	
+//	board.add(new Enemy(enemies.basic, {
+//		x: 160
+//	}));
+	
+	board.add(new PlayerShip());
+	board.add(new Level(level1,winGame));
+	Game.setBoard(3, board);
+}
+var winGame = function(){
+	Game.setBoard(3,new TitleScreen("你赢了！","点击开火键重新玩一次！",playGame));
+}
+var loseGame = function(){
+	Game.setBoard(3,new TitleScreen("你输了！","点击开火键重新玩一次！",playGame));
+}
+/*
+ * 监听事件
+ */
 window.addEventListener("load", function() {
 	Game.initialize("game", sprites, startGame);
 });
@@ -167,7 +245,6 @@ var PlayerShip = function() {
 			if (Game.keys['fire'] && this.reload < 0) {
 				Game.keys['fire'] = false;
 				this.reload = this.reloadTime;
-
 				this.board.add(new PlayerMissile(this.x, this.y + this.h / 2));
 				this.board.add(new PlayerMissile(this.x + this.w, this.y + this.h / 2));
 			}
@@ -177,13 +254,17 @@ var PlayerShip = function() {
 }
 PlayerShip.prototype = new Sprite();
 PlayerShip.prototype.type = OBJECT_PLAYER;
+PlayerShip.prototype.hit=function(damage){
+	this.board.remove(this);
+	loseGame();
+}
 /*
  * 飞船导弹
  */
 var PlayerMissile = function(x, y) {
 	this.setup("missile", {
 		vy: -700,
-		damage : 10
+		damage: 10
 	});
 	this.x = x - this.w / 2;
 	this.y = y - this.h;
@@ -192,13 +273,14 @@ PlayerMissile.prototype = new Sprite();
 PlayerMissile.prototype.type = OBJECT_PLAYER_PROJECTILE;
 PlayerMissile.prototype.step = function(dt) {
 	this.y += this.vy * dt;
-	var collision = this.board.collide(this,OBJECT_ENEMY);
-	if(collision){
+	var collision = this.board.collide(this, OBJECT_ENEMY);
+	if (collision) {
 		collision.hit(this.damage);
 		this.board.remove(this);
-	}else if(this.y<-this.h){
+	} else if (this.y < -this.h) {
 		this.board.remove(this);
 	}
+	//this.board.add(new Explosion(this.x + this.w / 2, this.y + this.h / 2));
 };
 
 /*
@@ -228,14 +310,38 @@ Enemy.prototype.step = function(dt) {
 	this.vy = this.E + this.F * Math.sin(this.G * this.t + this.H);
 	this.x += this.vx * dt;
 	this.y += this.vy * dt;
-	
-	var collision = this.board.collide(this,OBJECT_PLAYER);
-	if(collision){
+
+	var collision = this.board.collide(this, OBJECT_PLAYER);
+	if (collision) {
 		collision.hit(this);
 		this.board.remove(this);
+		this.board.add(new Explosion(this.x + this.w / 2, this.y + this.h / 2));
 	}
-	
+
 	if (this.y > Game.height || this.x < -this.w || this.x > Game.width) {
 		this.board.remove(this);
 	}
 }
+Enemy.prototype.hit = function(damage) {
+	this.health -= damage;
+	if (this.health <= 0) {
+		this.board.add(new Explosion(this.x + this.w / 2, this.y + this.h / 2));
+		this.board.remove(this);
+	}
+}
+
+var Explosion = function(centerX, centerY) {
+	this.setup("explosion", {
+		frames: 12
+	});
+	this.x = centerX - this.w / 2;
+	this.y = centerY - this.h / 2;
+	this.subFrame = 0;
+}
+Explosion.prototype = new Sprite();
+Explosion.prototype.step = function(dt) {
+		this.frame = Math.floor(this.subFrame++/ 3);
+			if (this.subFrame >= 36) {
+				this.board.remove(this);
+			}
+		}

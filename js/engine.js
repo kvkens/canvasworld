@@ -7,6 +7,7 @@
  * 游戏主程序
  */
 var Game = new function() {
+	var boards = [];
 	//初始化
 	this.initialize = function(canvasElementId, sprite_data, callback) {
 			this.canvas = document.getElementById(canvasElementId);
@@ -110,11 +111,12 @@ var GameBoard = function() {
 
 	// The current list of objects
 	this.objects = [];
-
+	this.cnt = {};
 	// Add a new object to the object list
 	this.add = function(obj) {
 		obj.board = this;
 		this.objects.push(obj);
+		this.cnt[obj.type] = (this.cnt[obj.type] || 0) + 1;
 		return obj;
 	};
 
@@ -132,7 +134,10 @@ var GameBoard = function() {
 	this.finalizeRemoved = function() {
 		for (var i = 0, len = this.removed.length; i < len; i++) {
 			var idx = this.objects.indexOf(this.removed[i]);
-			if (idx != -1) this.objects.splice(idx, 1);
+			if (idx != -1) {
+				this.objects.splice(idx, 1);
+				this.cnt[this.removed[i].type]--;
+			}
 		}
 	}
 
@@ -209,6 +214,60 @@ Sprite.prototype.merge = function(props) {
 Sprite.prototype.draw = function(ctx) {
 	SpriteSheet.draw(ctx, this.sprite, this.x, this.y, this.frame);
 }
-Sprite.prototype.hit = function(damage){
+Sprite.prototype.hit = function(damage) {
 	this.board.remove(this);
 }
+
+/*
+ * 等级关卡
+ */
+var Level = function(levelData, callback) {
+	this.levelData = [];
+	for (var i = 0; i < levelData.length; i++) {
+		this.levelData.push(Object.create(levelData[i]));
+	}
+	this.t = 0;
+	this.callback = callback;
+}
+Level.prototype.step = function(dt) {
+	var idx = 0,
+		remove = [],
+		curShip = null;
+
+	// Update the current time offset
+	this.t += dt * 1000;
+	//   Start, End,  Gap, Type,   Override
+	// [ 0,     4000, 500, 'step', { x: 100 } ]
+	while ((curShip = this.levelData[idx]) &&
+		(curShip[0] < this.t + 2000)) {
+		// Check if we've passed the end time 
+		if (this.t > curShip[1]) {
+			remove.push(curShip);
+		} else if (curShip[0] < this.t) {
+			// Get the enemy definition blueprint
+			var enemy = enemies[curShip[3]],
+				override = curShip[4];
+
+			// Add a new enemy with the blueprint and override
+			this.board.add(new Enemy(enemy, override));
+
+			// Increment the start time by the gap
+			curShip[0] += curShip[2];
+		}
+		idx++;
+	}
+
+	// Remove any objects from the levelData that have passed
+	for (var i = 0, len = remove.length; i < len; i++) {
+		var remIdx = this.levelData.indexOf(remove[i]);
+		if (remIdx != -1) this.levelData.splice(remIdx, 1);
+	}
+	// If there are no more enemies on the board or in 
+	// levelData, this level is done
+	if (this.levelData.length === 0 && this.board.cnt[OBJECT_ENEMY] === 0) {
+		if (this.callback) this.callback();
+	}
+
+};
+
+Level.prototype.draw = function(ctx) {};
